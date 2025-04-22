@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  app:
+    image: typescript-app:latest
+    container_name: typescript-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    # Add any volume mounts if needed
+    # volumes:
+    #   - ./data:/app/data
+    # Add port mapping if needed
+    # ports:
+    #   - "3000:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
