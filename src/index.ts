@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { CalendarManager, CalendarEvent } from "./calendar";
+import { CalDAVService, CalendarConfig } from "./caldav-service";
 import { scheduleCalendarSync } from "./scheduler";
 
 dotenv.config();
@@ -10,39 +10,44 @@ function greet(name: string): string {
   return `Hello, ${name}! Welcome to ${appName}!`;
 }
 
-async function importCalendar(url: string): Promise<void> {
+async function initializeCalendars() {
+  const caldavService = CalDAVService.getInstance();
+
+  // Initialize Google Calendar
+  const googleConfig: CalendarConfig = {
+    url: process.env.GOOGLE_CALENDAR_URL!,
+    username: process.env.GOOGLE_CALENDAR_USERNAME!,
+    password: process.env.GOOGLE_CALENDAR_PASSWORD!,
+    type: "caldav",
+  };
+
+  // Initialize Apple Calendar
+  const appleConfig: CalendarConfig = {
+    url: process.env.APPLE_CALENDAR_URL!,
+    username: process.env.APPLE_CALENDAR_USERNAME!,
+    password: process.env.APPLE_CALENDAR_PASSWORD!,
+    type: "caldav",
+  };
+
   try {
-    console.log(`Importing calendar from: ${url}`);
-    const events = await CalendarManager.importFromUrl(url);
+    await caldavService.initializeCalendar(googleConfig);
+    await caldavService.initializeCalendar(appleConfig);
+    console.log("Successfully initialized all calendars");
 
-    console.log("\nImported Events:");
-    events.forEach((event: CalendarEvent) => {
-      console.log("\n-------------------");
-      console.log(`Title: ${event.summary}`);
-      console.log(`Start: ${event.start.toLocaleString()}`);
-      console.log(`End: ${event.end.toLocaleString()}`);
-      if (event.location) console.log(`Location: ${event.location}`);
-      if (event.description) console.log(`Description: ${event.description}`);
-    });
-
-    console.log(`\nTotal events imported: ${events.length}`);
+    // Schedule sync for both calendars
+    scheduleCalendarSync(googleConfig);
+    scheduleCalendarSync(appleConfig);
   } catch (error) {
-    console.error("Failed to import calendar:", error);
+    console.error("Failed to initialize calendars:", error);
+    process.exit(1);
   }
 }
+
+// Initialize calendars and start the application
+initializeCalendars().then(() => {
+  console.log("Calendar sync service started");
+});
 
 // Example usage
 console.log(greet("User"));
 console.log(`Running in ${process.env.APP_ENV || "development"} mode`);
-
-// Get calendar URL from environment variables
-const calendarUrl =
-  process.env.CALENDAR_URL || "https://example.com/calendar.ics";
-
-// Initial calendar import
-importCalendar(calendarUrl);
-
-// Schedule nightly calendar sync
-scheduleCalendarSync(calendarUrl);
-
-console.log("Calendar sync scheduled to run nightly at midnight");

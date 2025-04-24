@@ -1,5 +1,5 @@
 import * as cron from "node-cron";
-import { CalendarManager } from "./calendar";
+import { CalDAVService, CalendarConfig } from "./caldav-service";
 
 export class Scheduler {
   private static instance: Scheduler;
@@ -67,19 +67,25 @@ export class Scheduler {
 }
 
 // Example usage:
-export const scheduleCalendarSync = (calendarUrl: string) => {
+export const scheduleCalendarSync = (config: CalendarConfig) => {
   const scheduler = Scheduler.getInstance();
+  const caldavService = CalDAVService.getInstance();
 
-  // Schedule calendar sync to run every night at midnight
   scheduler.scheduleTask(
-    "calendarSync",
+    `calendarSync-${config.type}`,
     "0 0 * * *", // Run at midnight every day
     async () => {
       try {
-        const events = await CalendarManager.importFromUrl(calendarUrl);
-        console.log(`Synced ${events.length} calendar events`);
+        const start = new Date();
+        const end = new Date();
+        end.setMonth(end.getMonth() + 1);
+
+        const events = await caldavService.getEvents(config, start, end);
+        console.log(
+          `Synced ${events.length} events from ${config.type} calendar`
+        );
       } catch (error) {
-        console.error("Failed to sync calendar:", error);
+        console.error(`Failed to sync ${config.type} calendar:`, error);
       }
     }
   );

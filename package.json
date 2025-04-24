@@ -1,7 +1,7 @@
 {
-  "name": "typescript-docker-project",
+  "name": "calendar-sync",
   "version": "1.0.0",
-  "description": "Basic TypeScript project with Docker",
+  "description": "Calendar Sync",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rm -rf dist",
@@ -12,9 +12,10 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "ical.js": "^1.5.0",
     "node-cron": "^3.0.3",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "tsdav": "^2.1.3",
+    "webdav": "^5.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.19",
